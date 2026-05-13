@@ -1,0 +1,108 @@
+# =============================================================
+# 配置文件模板 — 请复制为 application-local.yml 并填入真实值
+# application-local.yml 已被 .gitignore 排除，不会提交到 Git
+# =============================================================
+
+server:
+  port: 8015
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+      enabled: true
+
+spring:
+  ai:
+    openai:
+      api-key: ${DASHSCOPE_API_KEY:your-api-key-here}
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/
+      chat:
+        options:
+          model: qwen-plus
+          temperature: 0.7
+          maxTokens: 5000
+      embedding:
+        base-url: https://dashscope.aliyuncs.com/compatible-mode/
+        api-key: ${DASHSCOPE_API_KEY:your-api-key-here}
+        options:
+          model: text-embedding-v4
+          dimmension: 1024
+    mcp:
+      client:
+        enabled: false
+
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/nailong?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:your-password-here}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      idle-timeout: 60000
+      connection-timeout: 30000
+      max-lifetime: 1800000
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: 6379
+      database: 6
+      timeout: 5s
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  global-config:
+    db-config:
+      id-type: auto
+
+#minio:
+#  url: http://192.168.100.128:9000/
+#  accessKey: ${MINIO_ACCESS_KEY:minioadmin}
+#  secretKey: ${MINIO_SECRET_KEY:minioadmin}
+#  bucketName: nailong
+#  endpoint: http://192.168.100.128:9000/
+
+#embeddings:
+#  store:
+#    host: 192.168.100.128
+#    port: 5433
+#    database: vector_store
+#    user: ${PGVECTOR_USER:pgvector}
+#    password: ${PGVECTOR_PASSWORD:pgvector}
+
+tavily:
+  api-key: ${TAVILY_API_KEY:your-tavily-key-here}
+  mcp-url: https://mcp.tavily.com/mcp/
+
+grsai:
+  nanobanana:
+    api-key: ${NANOBANANA_API_KEY:your-nanobanana-key-here}
+
+nailong:
+  agent:
+    max-iterations: 10
+    max-tokens: 5000
+  character:
+    personality: cheerful
+    sleepy-timeout-minutes: 5
+
+logging:
+  level:
+    org:
+      springframework:
+        ai: INFO
+    io:
+      modelcontextprotocol:
+        client: ERROR

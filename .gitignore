@@ -1,0 +1,172 @@
+# ============================
+# 敏感信息 / 凭据 — 绝对禁止提交
+# ============================
+
+# Spring Boot 主配置文件（当前含明文密钥，用 example 模板替代）
+src/main/resources/application-local.yml
+
+# Spring Boot 本地/环境配置覆盖（含数据库密码、API Key 等）
+**/application-local.yml
+**/application-local.yaml
+**/application-local.properties
+**/application-dev.yml
+**/application-dev.yaml
+**/application-dev.properties
+**/application-prod.yml
+**/application-prod.yaml
+**/application-prod.properties
+
+# 通用环境变量文件
+.env
+.env.*
+!.env.example
+
+# 各类凭据文件
+**/credentials*
+**/*credential*
+**/*secret*
+**/private_key*
+**/service-account*.json
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/*.jks
+**/*.keystore
+**/*.truststore
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.truststore
+
+# IntelliJ 数据源本地配置（包含数据库连接密码）
+.idea/dataSources.local.xml
+.idea/dataSources/
+
+# ============================
+# Java / Maven 构建产物
+# ============================
+
+target/
+!.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+
+# Maven wrapper（保留 wrapper 配置，忽略 jar）
+.mvn/wrapper/maven-wrapper.jar
+
+# ============================
+# 依赖 / 包管理
+# ============================
+
+!.mvn/wrapper/maven-wrapper.properties
+
+# ============================
+# IDE
+# ============================
+
+# IntelliJ IDEA
+.idea/
+!.idea/.gitignore
+
+*.iml
+*.ipr
+*.iws
+out/
+
+# VS Code
+.vscode/
+
+# Eclipse
+.classpath
+.project
+.settings/
+.metadata/
+bin/
+
+# NetBeans
+nbproject/
+nbbuild/
+nbdist/
+
+# ============================
+# 操作系统
+# ============================
+
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+$RECYCLE.BIN/
+
+# ============================
+# 日志
+# ============================
+
+*.log
+logs/
+*.log.*
+
+# ============================
+# 临时 / 备份文件
+# ============================
+
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+*.orig
+*.old
+*.pid
+
+# ============================
+# 操作系统核心转储
+# ============================
+
+core
+*.core
+*.dmp
+*.hprof
+
+# ============================
+# 压缩包 / 归档
+# ============================
+
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.rar
+*.7z
+*.gz
+*.bz2
+
+# ============================
+# 测试
+# ============================
+
+# 测试生成的临时文件
+**/test-output/
+**/surefire-reports/
+**/failsafe-reports/
+
+# ============================
+# 其他
+# ============================
+
+# AI / LLM 本地缓存
+.llm-cache/
+*.llm-cache
+
+# Playwright
+playwright-report/
+test-results/
