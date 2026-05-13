@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>奶龙桌面伙伴</title>
+    <title>剑客桌面伙伴</title>
     <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/css/desktop.css">
 </head>
 <body>
 
 <div id="desktop">
-    <!-- Character overlay (always visible) -->
-    <div id="character" class="character" data-state="idle"></div>
+    <!-- Character overlay (always visible, managed by animation.js) -->
+    <div id="character" class="character"></div>
 
     <!-- Main chat window -->
     <div id="chat-window" class="window" style="left: 50px; top: 30px; width: 420px;">
         <div class="window-header" data-window="chat-window">
-            <span class="window-title">奶龙对话</span>
+            <span class="window-title">剑客对话</span>
             <div class="window-buttons">
                 <button class="win-btn win-min" title="最小化">_</button>
                 <button class="win-btn win-close" title="关闭">x</button>
@@ -25,7 +25,7 @@
         <div class="window-body">
             <div id="chat-messages" class="chat-messages"></div>
             <div class="chat-input-area">
-                <input type="text" id="chat-input" placeholder="和奶龙说点什么吧..." autofocus>
+                <input type="text" id="chat-input" placeholder="和剑客说点什么吧..." autofocus>
                 <button id="chat-send" class="btn-send">发送</button>
             </div>
         </div>
@@ -48,13 +48,15 @@
 </div>
 
 <script src="/js/desktop.js"></script>
+<script src="/js/animation.js"></script>
 <script src="/js/chatHistory.js"></script>
-<script src="/js/naiLongAgent.js"></script>
+<script src="/js/swordsmanAgent.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    AnimationEngine.init();
     Desktop.init();
     ChatHistory.init();
-    NaiLongAgentClient.init();
+    SwordsmanAgentClient.init();
 });
 </script>
 </body>

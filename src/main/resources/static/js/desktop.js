@@ -1,5 +1,6 @@
 /**
- * Desktop window manager — drag, z-index, random offset
+ * Desktop window manager — drag, z-index, random offset.
+ * Character element is managed by animation.js (image-based rendering).
  */
 const Desktop = {
     zIndexCounter: 10,
@@ -18,7 +19,6 @@ const Desktop = {
             win.addEventListener('mousedown', () => this.bringToFront(win));
         });
 
-        // Window button handlers
         document.querySelectorAll('.win-close').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -42,7 +42,7 @@ const Desktop = {
         let offsetX = 0, offsetY = 0;
 
         header.addEventListener('mousedown', (e) => {
-            if (e.target.closest('.win-btn')) return; // Don't drag on buttons
+            if (e.target.closest('.win-btn')) return;
             offsetX = e.clientX - win.offsetLeft;
             offsetY = e.clientY - win.offsetTop;
             document.addEventListener('mousemove', onMove);
@@ -76,15 +76,13 @@ const Desktop = {
         return Math.max(0, Math.min(window.innerHeight - win.offsetHeight, y));
     },
 
-    /* === Character === */
+    /* === Character dragging === */
     initCharacter() {
         const char = this.charEl;
         if (!char) return;
 
-        // Initial random position
         this.randomOffset();
 
-        // Drag support
         let offsetX = 0, offsetY = 0;
 
         char.addEventListener('mousedown', (e) => {
@@ -121,13 +119,12 @@ const Desktop = {
 
         const maxX = window.innerWidth - char.offsetWidth;
         const maxY = window.innerHeight - char.offsetHeight;
-        const x = Math.random() * maxX * 0.6 + maxX * 0.2; // Bias toward center
+        const x = Math.random() * maxX * 0.6 + maxX * 0.2;
         const y = Math.random() * maxY * 0.4 + maxY * 0.3;
         char.style.left = x + 'px';
         char.style.top = y + 'px';
     },
 
-    /* Toast notification */
     showToast(message, duration = 3000) {
         const toast = document.createElement('div');
         toast.className = 'toast';

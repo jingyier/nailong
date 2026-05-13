@@ -1,7 +1,3 @@
-# =============================================================
-# 配置文件模板 — 请复制为 application-local.yml 并填入真实值
-# application-local.yml 已被 .gitignore 排除，不会提交到 Git
-# =============================================================
 
 server:
   port: 8015
@@ -90,12 +86,12 @@ grsai:
   nanobanana:
     api-key: ${NANOBANANA_API_KEY:your-nanobanana-key-here}
 
-nailong:
+swordsman:
   agent:
     max-iterations: 10
     max-tokens: 5000
   character:
-    personality: cheerful
+    personality: calm
     sleepy-timeout-minutes: 5
 
 logging:

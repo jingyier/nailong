@@ -1,7 +1,7 @@
 package cn.jingyier.nail.nailong.controller;
 
 import cn.jingyier.nail.nailong.entity.vo.MessageSendRequest;
-import cn.jingyier.nail.nailong.service.agent.NaiLongAgent;
+import cn.jingyier.nail.nailong.service.agent.SwordsmanAgent;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,17 +10,17 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 @RestController
 public class AgentStreamController {
 
-    private final NaiLongAgent naiLongAgent;
+    private final SwordsmanAgent swordsmanAgent;
 
-    public AgentStreamController(NaiLongAgent naiLongAgent) {
-        this.naiLongAgent = naiLongAgent;
+    public AgentStreamController(SwordsmanAgent swordsmanAgent) {
+        this.swordsmanAgent = swordsmanAgent;
     }
 
     @PostMapping(value = "/api/v1/conversations/{sessionKey}/messages",
             produces = "application/x-ndjson")
     public StreamingResponseBody sendMessage(@PathVariable String sessionKey,
                                              @RequestBody @Valid MessageSendRequest request) {
-        return outputStream -> naiLongAgent.streamResponse(sessionKey, request.getContent(), outputStream);
+        return outputStream -> swordsmanAgent.streamResponse(sessionKey, request.getContent(), outputStream);
     }
 
     @GetMapping("/favicon.ico")
