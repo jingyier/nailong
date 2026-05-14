@@ -38,6 +38,11 @@ public class AnimationPlayer {
     private volatile Instant lastChatActivity = Instant.now();
     private volatile boolean finished = false;
 
+    /** Timestamp until which state switching is locked (minimum one cycle). */
+    private volatile long switchLockedUntilMs = 0;
+    /** Pending chat state to process once the current animation cycle completes. */
+    private final AtomicReference<ChatState> pendingChatState = new AtomicReference<>(null);
+
     public AnimationState getState() {
         AnimationAction action = currentAction.get();
         int idx = frameIndex.get();
@@ -54,17 +59,50 @@ public class AnimationPlayer {
 
     /**
      * Called by the chat agent whenever the AI changes semantic state.
-     * Resets the current animation to the first action in the mapping list,
-     * and resets the frame index to 0.
+     * Guarantees that the current animation plays at least one full cycle
+     * before switching — unless the state is ERROR (immediate).
+     * If the switch is locked, the new state is queued and processed by tick().
      */
     public void setChatState(ChatState state) {
         lastChatActivity = Instant.now();
-        List<AnimationAction> actions = ChatToAnimationMapping.resolve(state);
-        if (actions.isEmpty()) {
-            switchTo(AnimationAction.IDLE);
+
+        // ERROR always interrupts immediately
+        if (state == ChatState.ERROR) {
+            executeSwitch(state);
             return;
         }
-        switchTo(actions.get(0));
+
+        // Same chat state — no reset, preserves animation continuity
+        ChatState currentChatState = inferChatState();
+        if (state == currentChatState && currentChatState != ChatState.IDLE) {
+            return;
+        }
+
+        long now = System.currentTimeMillis();
+        if (now < switchLockedUntilMs) {
+            pendingChatState.set(state);
+            log.debug("Animation state {} queued (locked for {}ms more)", state, switchLockedUntilMs - now);
+            return;
+        }
+
+        executeSwitch(state);
+    }
+
+    private void executeSwitch(ChatState state) {
+        List<AnimationAction> actions = ChatToAnimationMapping.resolve(state);
+        AnimationAction target = actions.isEmpty() ? AnimationAction.IDLE : actions.get(0);
+        switchTo(target);
+        switchLockedUntilMs = System.currentTimeMillis() + calculateCycleDurationMs(target);
+        pendingChatState.set(null);
+    }
+
+    private long calculateCycleDurationMs(AnimationAction action) {
+        int interval = action.getFrameIntervalMs();
+        return switch (action.getPlayMode()) {
+            case LOOP -> (long) action.getFrameCount() * interval;
+            case PLAY_ONCE -> (long) action.getFrameCount() * interval;
+            case PING_PONG -> (long) (2 * (action.getFrameCount() - 1)) * interval;
+        };
     }
 
     private void switchTo(AnimationAction action) {
@@ -83,6 +121,7 @@ public class AnimationPlayer {
         AnimationAction action = currentAction.get();
         long now = System.currentTimeMillis();
         if (now - lastAdvanceMs < action.getFrameIntervalMs()) {
+            processPendingSwitch(now);
             return;
         }
         lastAdvanceMs = now;
@@ -108,6 +147,15 @@ public class AnimationPlayer {
                 }
                 frameIndex.set(Math.clamp(next, 0, count - 1));
             }
+        }
+
+        processPendingSwitch(now);
+    }
+
+    private void processPendingSwitch(long now) {
+        ChatState pending = pendingChatState.getAndSet(null);
+        if (pending != null && now >= switchLockedUntilMs) {
+            executeSwitch(pending);
         }
     }
 

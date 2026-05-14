@@ -16,7 +16,7 @@ public enum AnimationAction {
     LAND("陆地", "action6", 75, 4, PlayMode.LOOP, 250),
     DEATH("死亡", "action7", 90, 9, PlayMode.PLAY_ONCE, 150),
     PAIN("伤痛", "action8", 105, 10, PlayMode.PLAY_ONCE, 120),
-    ATTACK("攻击", "action9", 120, 15, PlayMode.LOOP, 80);
+    ATTACK("攻击", "action9", 120, 15, PlayMode.LOOP, 100);
 
     private final String displayName;
     private final String dirName;

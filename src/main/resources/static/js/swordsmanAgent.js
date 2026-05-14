@@ -40,7 +40,6 @@ const SwordsmanAgentClient = {
         const sessionKey = ChatHistory.getOrCreateSession();
 
         ChatHistory.appendMessage('user', content);
-        AnimationEngine.hintAction('listening');
 
         const typingEl = this.addTypingIndicator();
 
@@ -54,7 +53,6 @@ const SwordsmanAgentClient = {
             if (!response.ok) {
                 const errData = await response.json().catch(() => ({}));
                 Desktop.showToast(errData.message || '连接失败，请稍后再试...');
-                AnimationEngine.hintAction('idle');
                 this.removeTypingIndicator(typingEl);
                 this.isStreaming = false;
                 btn.disabled = false;
@@ -65,7 +63,6 @@ const SwordsmanAgentClient = {
         } catch (e) {
             console.error('Send failed:', e);
             Desktop.showToast('网络连接失败，请检查网络后重试...');
-            AnimationEngine.hintAction('idle');
             this.removeTypingIndicator(typingEl);
         }
 
@@ -117,12 +114,7 @@ const SwordsmanAgentClient = {
     },
 
     handleEvent(data, ctx) {
-        const { type, content, characterState, recommendations, messageId } = data;
-
-        // Notify animation engine immediately for instant visual feedback
-        if (characterState) {
-            AnimationEngine.hintAction(characterState);
-        }
+        const { type, content, recommendations, messageId } = data;
 
         switch (type) {
             case 'thinking':
@@ -205,7 +197,6 @@ const SwordsmanAgentClient = {
 
             case 'error':
                 Desktop.showToast(data.message || '服务暂时不可用，请稍后再试...');
-                AnimationEngine.hintAction('idle');
                 break;
         }
     },

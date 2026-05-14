@@ -101,7 +101,6 @@ const AnimationEngine = (() => {
 
         if (actionChanged) {
             preloadAction(s.action, frameCount, path);
-            frameIndex = 0;
         }
     }
 
