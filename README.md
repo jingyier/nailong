@@ -3,10 +3,10 @@
 > 你家电脑桌面上的 AI 武侠助手——问什么答什么，干净利落，附带一位会动的小人陪你聊。至于为什么设计剑客而不是原本预想的奶龙，不是因为我嘉豪，只是因为找不到奶龙的优质序列帧png，可惜。
 
 <p align="center">
-  <img src="docs/screenshots/主界面.png" alt="江湖客栈主界面" width="2505">
+  <img src="docs/screenshots/main-interface.png" alt="江湖客栈主界面" width="2505">
   <br>
   <em>剑客问答</em>
-<img src="docs/screenshots/挥剑.png" alt="江湖客栈主界面" width="2505">
+<img src="docs/screenshots/sword-swing.png" alt="江湖客栈主界面" width="2505">
   <br>
   <em>挥剑</em>
 </p>
@@ -106,7 +106,7 @@ mvn spring-boot:run
 ```
 
 打开 `http://localhost:8000`即可访问（其实不然，网关作用下得在请求头加上 `X-API-Key`，我还没想好怎么获取，就先用apifox测试了一下，以后再说吧）。
-<img src="docs/screenshots/apifox测试界面.png" alt="测试" width="720">
+<img src="docs/screenshots/apifox-test-interface.png" alt="测试" width="720">
 
 ## ⚙️ 配置速查
 
