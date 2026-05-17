@@ -1,6 +1,4 @@
-# ============================
-# 敏感信息 / 凭据 — 绝对禁止提交
-# ============================
+
 
 # Spring Boot 主配置文件（当前含明文密钥，用 example 模板替代）
 src/main/resources/application-local.yml
@@ -170,3 +168,57 @@ core
 # Playwright
 playwright-report/
 test-results/
+
+# ============================
+# 多模块项目特定忽略
+# ============================
+
+# 各模块的 target 目录
+nailong-gateway/target/
+nailong-service/target/
+
+# 各模块的 IDE 文件
+nailong-gateway/*.iml
+nailong-service/*.iml
+
+# 各模块的本地配置文件（确保被忽略）
+nailong-gateway/src/main/resources/application-local.yml
+nailong-service/src/main/resources/application-local.yml
+
+# 可能存在的敏感配置文件
+**/config/local*
+**/secrets*
+**/.secret*
+
+# Docker 相关（如果存在）
+docker-compose.override.yml
+*.env.docker
+
+# Node.js 相关（如果前端使用 npm/yarn）
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# 前端构建产物（如果有）
+**/dist/
+**/build/
+
+# 临时文件和缓存
+**/.cache/
+**/.temp/
+**/tmp/
+
+# 文档生成
+**/javadoc/
+**/apidocs/
+
+# 性能分析文件
+**/*.hprof
+**/*.heapdump
+
+# Kubernetes 配置（如果包含敏感信息）
+**/k8s/secrets*
+**/kubernetes/secrets*
