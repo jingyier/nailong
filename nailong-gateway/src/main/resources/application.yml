@@ -1,0 +1,135 @@
+server:
+  port: 8000
+
+spring:
+  application:
+    name: nailong-gateway
+
+  sql:
+    init:
+      mode: never
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+
+            # --- Streaming route (NDJSON) ---
+            - id: messages-streaming
+              uri: http://localhost:8015
+              order: 0
+              predicates:
+                - Path=/api/v1/conversations/*/messages
+                - Method=POST
+              metadata:
+                response-timeout: 180000
+                connect-timeout: 10000
+
+            # --- Animation polling ---
+            - id: animation-state
+              uri: http://localhost:8015
+              order: 10
+              predicates:
+                - Path=/api/v1/animation/state
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 50
+                    redis-rate-limiter.burstCapacity: 100
+                    key-resolver: "#{@ipKeyResolver}"
+
+            # --- CRUD API routes ---
+            - id: api-conversations
+              uri: http://localhost:8015
+              order: 20
+              predicates:
+                - Path=/api/v1/conversations/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: nailong-service
+                    fallbackUri: forward:/fallback/conversations
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 20
+                    redis-rate-limiter.burstCapacity: 40
+                    key-resolver: "#{@ipKeyResolver}"
+
+            # --- Static resources / frontend ---
+            - id: frontend
+              uri: http://localhost:8015
+              order: 100
+              predicates:
+                - Path=/
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: 6379
+      database: 7
+      timeout: 3s
+
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/nailong?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:your-password-here}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      minimum-idle: 2
+      maximum-pool-size: 10
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  global-config:
+    db-config:
+      id-type: auto
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10000
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+    instances:
+      nailong-service:
+        base-config: default
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 120s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus,gateway
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+nailong:
+  gateway:
+    security:
+      api-key-header: X-API-Key
+      api-key: ${GATEWAY_API_KEY:}
+      max-request-size: 10MB
+      blocked-ip-ttl-minutes: 30
+    rate-limit:
+      global-rps: 100
+      per-ip-rps: 20
+    audit:
+      enabled: true
+      async: true
+
+logging:
+  level:
+    cn.jingyier.nail.gateway: DEBUG
+    org.springframework.cloud.gateway: INFO

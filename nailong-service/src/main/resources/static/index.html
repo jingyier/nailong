@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>江湖客栈 · 剑客问答</title>
+    <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;500;600;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/desktop.css">
+</head>
+<body>
+
+<div id="desktop">
+    <!-- Sunlit dust particle layer -->
+    <canvas id="particles"></canvas>
+
+    <!-- Wine flag decorations -->
+    <div class="wine-flag flag-1">
+        <div class="flag-pole"></div>
+        <div class="flag-banner"><span class="flag-char">酒</span></div>
+    </div>
+    <div class="wine-flag flag-2">
+        <div class="flag-pole"></div>
+        <div class="flag-banner"><span class="flag-char">茶</span></div>
+    </div>
+
+    <!-- Copper coins decoration -->
+    <div class="copper-coins bottom-right">
+        <div class="coin"></div>
+        <div class="coin" style="transform: rotate(15deg);"></div>
+        <div class="coin" style="transform: rotate(-10deg);"></div>
+        <div class="coin" style="transform: rotate(25deg);"></div>
+    </div>
+
+    <!-- Clay wine bowl decoration -->
+    <div class="clay-bowl">
+        <div class="bowl"></div>
+    </div>
+
+    <!-- Corner seals -->
+    <div class="corner-seal seal-tl">武</div>
+    <div class="corner-seal seal-tr">侠</div>
+    <div class="corner-seal seal-bl">江</div>
+    <div class="corner-seal seal-br">湖</div>
+
+    <!-- Character stage — martial arts arena -->
+    <div id="character-stage">
+        <div class="stage-platform">
+            <div class="platform-ring ring-outer"></div>
+            <div class="platform-ring ring-inner"></div>
+            <div class="platform-glow"></div>
+        </div>
+        <div id="character" class="character"></div>
+        <div class="character-shadow"></div>
+        <div id="character-nameplate" class="character-nameplate">
+            <span class="nameplate-kanji">劍</span>
+            <span class="nameplate-state">待机</span>
+        </div>
+    </div>
+
+    <!-- Chat window -->
+    <div id="chat-window" class="window scroll-window" style="left: 40px; top: 24px; width: 440px;">
+        <div class="window-header" data-window="chat-window">
+            <div class="header-decor left"></div>
+            <span class="window-title">
+                <span class="title-kanji">問</span>
+                <span class="title-text">江湖问答</span>
+            </span>
+            <div class="window-buttons">
+                <button class="win-btn win-min" title="收起" aria-label="最小化">
+                    <svg width="10" height="2" viewBox="0 0 10 2"><rect width="10" height="1.5" rx="0.75" fill="currentColor"/></svg>
+                </button>
+                <button class="win-btn win-close" title="关闭" aria-label="关闭">
+                    <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="window-body">
+            <div id="chat-messages" class="chat-messages">
+                <div class="welcome-state">
+                    <div class="welcome-seal">劍</div>
+                    <p class="welcome-haiku">一壶浊酒喜相逢<br>古今多少事<br>都付笑谈中</p>
+                    <p class="welcome-sub">有请剑客出招，以武论道，以心问剑</p>
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <div class="input-ornament left"></div>
+                <div class="input-wrapper">
+                    <input type="text" id="chat-input" placeholder="请君赐教…" autofocus>
+                    <button id="chat-send" class="btn-send" title="发送">
+                        <svg width="16" height="16" viewBox="0 0 16 16">
+                            <path d="M2 2l12 6L2 14V9l8-1-8-1V2z" fill="currentColor"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="input-ornament right"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conversation list window -->
+    <div id="conv-list-window" class="window lantern-window" style="left: 520px; top: 24px; width: 280px;">
+        <div class="window-header" data-window="conv-list-window">
+            <div class="header-decor left"></div>
+            <span class="window-title">
+                <span class="title-kanji">錄</span>
+                <span class="title-text">江湖录</span>
+            </span>
+            <div class="window-buttons">
+                <button class="win-btn win-min" title="收起" aria-label="最小化">
+                    <svg width="10" height="2" viewBox="0 0 10 2"><rect width="10" height="1.5" rx="0.75" fill="currentColor"/></svg>
+                </button>
+                <button class="win-btn win-close" title="关闭" aria-label="关闭">
+                    <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="window-body">
+            <button id="btn-new-conv" class="btn-new-conv">
+                <svg width="14" height="14" viewBox="0 0 14 14">
+                    <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <span>新对话</span>
+            </button>
+            <ul id="conv-list" class="conv-list"></ul>
+            <div id="conv-empty" class="conv-empty">
+                <span class="empty-icon">—</span>
+                <span>尚无对话</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container" aria-live="polite"></div>
+
+<script src="/js/desktop.js"></script>
+<script src="/js/animation.js"></script>
+<script src="/js/chatHistory.js"></script>
+<script src="/js/swordsmanAgent.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    Desktop.init();
+    AnimationEngine.init();
+    ChatHistory.init();
+    SwordsmanAgentClient.init();
+});
+</script>
+</body>
+</html>
