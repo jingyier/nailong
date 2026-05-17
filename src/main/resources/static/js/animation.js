@@ -1,12 +1,11 @@
 /**
  * Animation engine — polls backend for authoritative animation state,
- * renders PNG sequence frames, handles action switching and preloading.
+ * renders PNG sequence frames, manages preloading, updates nameplate.
  *
  * Architecture:
- *   PollingLayer → StateSync → RenderLayer
+ *   PollingLayer (80ms) → StateSync → RenderLayer + NameplateLayer
  *
  * Backend is authoritative for both action AND frame index.
- * Polling at ~80ms keeps the frontend in lockstep.
  */
 const AnimationEngine = (() => {
 
@@ -18,8 +17,10 @@ const AnimationEngine = (() => {
     let finished        = false;
     let lastFramePath   = '';
 
-    /* ---- DOM ---- */
-    let charImg = null;
+    /* ---- DOM refs ---- */
+    let charImg      = null;
+    let nameplateEl  = null;
+    let stateTextEl  = null;
 
     /* ---- polling ---- */
     let pollTimer  = null;
@@ -27,6 +28,24 @@ const AnimationEngine = (() => {
 
     /* ---- preload cache ---- */
     const preloadCache = {};
+
+    /* ---- state display names (Japanese aesthetic) ---- */
+    const STATE_LABELS = {
+        IDLE:      '待機中',
+        WALK:      '歩行',
+        COMBO:     '連撃',
+        JUMP:      '跳躍',
+        FALL:      '落下',
+        LAND:      '着地',
+        DEATH:     '無念',
+        PAIN:      '痛手',
+        ATTACK:    '斬撃',
+        LISTENING: '傾聴',
+        THINKING:  '思案',
+        SPEAKING:  '発言',
+        ERROR:     '困惑',
+        SLEEPING:  '休眠'
+    };
 
     /* ===========================================================
      *  Public API
@@ -36,7 +55,7 @@ const AnimationEngine = (() => {
         const charEl = document.getElementById('character');
         if (!charEl) return;
 
-        // Replace background-image div with <img> for proper PNG rendering
+        /* Set up <img> render target */
         charEl.innerHTML = '';
         charImg = document.createElement('img');
         charImg.id = 'character-img';
@@ -48,12 +67,17 @@ const AnimationEngine = (() => {
         charImg.draggable = false;
         charEl.appendChild(charImg);
 
-        fetchState();          // immediate
+        /* Nameplate state text element */
+        stateTextEl = document.querySelector('.nameplate-state');
+        nameplateEl = document.getElementById('character-nameplate');
+
+        /* Fetch initial state immediately, then poll */
+        fetchState();
         pollTimer = setInterval(fetchState, POLL_MS);
     }
 
     /**
-     * Called by swordsmanAgent.js when a characterState arrives in an SSE event.
+     * Called by swordsmanAgent.js when a characterState arrives in an NDJSON event.
      * Provides instant feedback before the next poll cycle.
      */
     function hintAction(actionName) {
@@ -62,6 +86,7 @@ const AnimationEngine = (() => {
         if (upper !== currentAction) {
             frameIndex = 0;
             currentAction = upper;
+            updateNameplate(upper);
         }
     }
 
@@ -96,11 +121,43 @@ const AnimationEngine = (() => {
         const path = s.framePath;
         if (path && path !== lastFramePath) {
             lastFramePath = path;
-            if (charImg) charImg.src = path;
+            if (charImg) {
+                /* Crossfade smoothness: pre-set opacity for new frames on action change */
+                if (actionChanged) {
+                    charImg.style.transition = 'opacity 60ms ease';
+                    charImg.style.opacity = '0.85';
+                    requestAnimationFrame(() => {
+                        charImg.src = path;
+                        charImg.style.opacity = '1';
+                    });
+                } else {
+                    charImg.src = path;
+                }
+            }
         }
 
         if (actionChanged) {
+            updateNameplate(s.action);
             preloadAction(s.action, frameCount, path);
+        }
+    }
+
+    /* ===========================================================
+     *  Nameplate
+     * =========================================================== */
+
+    function updateNameplate(action) {
+        if (stateTextEl) {
+            const label = STATE_LABELS[action] || action;
+            stateTextEl.textContent = label;
+
+            /* Flash effect on change */
+            stateTextEl.style.color = 'var(--gold)';
+            stateTextEl.style.transition = 'none';
+            requestAnimationFrame(() => {
+                stateTextEl.style.transition = 'color 600ms ease';
+                stateTextEl.style.color = 'var(--text-muted)';
+            });
         }
     }
 
@@ -112,7 +169,7 @@ const AnimationEngine = (() => {
         const match = samplePath.match(/^(.+\/samurai)(\d+)\.png$/);
         if (!match) return;
 
-        const prefix = match[1];         // e.g. "/img/swordman/action3/samurai"
+        const prefix = match[1];
         const currentNum = parseInt(match[2], 10);
         const startNum = currentNum - frameIndex;
 
@@ -136,5 +193,14 @@ const AnimationEngine = (() => {
     function getFrameCount(){ return frameCount; }
     function isFinished()   { return finished; }
 
-    return { init, destroy, hintAction, getAction, getFrameIdx, getFrameCount, isFinished };
+    /* Expose for potential nameplate access */
+    function getStateLabel(action) {
+        return STATE_LABELS[action] || action;
+    }
+
+    return {
+        init, destroy, hintAction,
+        getAction, getFrameIdx, getFrameCount, isFinished,
+        getStateLabel
+    };
 })();
