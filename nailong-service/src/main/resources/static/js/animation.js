@@ -1,9 +1,10 @@
 /**
- * Animation engine — polls backend for authoritative animation state,
- * renders PNG sequence frames, manages preloading, updates nameplate.
+ * Animation engine — receives authoritative animation state via SSE
+ * (with polling fallback), renders PNG sequence frames, manages
+ * preloading, updates nameplate.
  *
  * Architecture:
- *   PollingLayer (80ms) → StateSync → RenderLayer + NameplateLayer
+ *   SSE (primary) / Polling (fallback, 80ms) → StateSync → RenderLayer + NameplateLayer
  *
  * Backend is authoritative for both action AND frame index.
  */
@@ -20,8 +21,9 @@ const AnimationEngine = (() => {
     let nameplateEl  = null;
     let stateTextEl  = null;
 
-    let pollTimer  = null;
-    const POLL_MS  = 80;
+    let eventSource  = null;
+    let pollTimer    = null;
+    const POLL_MS    = 80;
 
     const preloadCache = {};
 
@@ -65,6 +67,32 @@ const AnimationEngine = (() => {
         stateTextEl = document.querySelector('.nameplate-state');
         nameplateEl = document.getElementById('character-nameplate');
 
+        connectSSE();
+    }
+
+    function connectSSE() {
+        if (eventSource) {
+            eventSource.close();
+        }
+
+        eventSource = new EventSource('/api/v1/animation/stream');
+
+        eventSource.addEventListener('state', function(e) {
+            try {
+                const s = JSON.parse(e.data);
+                applyState(s);
+            } catch (_) {}
+        });
+
+        eventSource.onerror = function() {
+            eventSource.close();
+            eventSource = null;
+            startPollingFallback();
+        };
+    }
+
+    function startPollingFallback() {
+        if (pollTimer) return;
         fetchState();
         pollTimer = setInterval(fetchState, POLL_MS);
     }
@@ -80,7 +108,8 @@ const AnimationEngine = (() => {
     }
 
     function destroy() {
-        if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+        if (eventSource) { eventSource.close(); eventSource = null; }
+        if (pollTimer)  { clearInterval(pollTimer); pollTimer = null; }
     }
 
     /* ===========================================================

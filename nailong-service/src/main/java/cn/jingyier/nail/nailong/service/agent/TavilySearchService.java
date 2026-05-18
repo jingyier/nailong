@@ -5,6 +5,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.function.FunctionToolCallback;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -16,7 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-public class TavilySearchService implements Function<TavilySearchService.SearchRequest, TavilySearchService.SearchResponse> {
+@Component
+public class TavilySearchService implements Function<TavilySearchService.SearchRequest, TavilySearchService.SearchResponse>, RegistrableTool {
 
     private static final Logger log = LoggerFactory.getLogger(TavilySearchService.class);
     private static final String API_URL = "https://api.tavily.com/search";
@@ -25,12 +30,29 @@ public class TavilySearchService implements Function<TavilySearchService.SearchR
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
 
-    public TavilySearchService(String apiKey) {
+    public TavilySearchService(@Value("${tavily.api-key}") String apiKey) {
         this.apiKey = apiKey;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
         this.objectMapper = new ObjectMapper();
+    }
+
+    @Override
+    public ToolCallback toToolCallback() {
+        return FunctionToolCallback.builder("web_search", (Function<SearchRequest, SearchResponse>) this)
+                .description("""
+                    搜索互联网获取最新信息。
+                    当需要查找实时数据、新闻、或用户询问当前事件时使用此工具。
+                    输入 JSON 示例:
+                    {
+                      "query": "搜索关键词",
+                      "searchDepth": "basic",
+                      "maxResults": 5
+                    }
+                    """)
+                .inputType(SearchRequest.class)
+                .build();
     }
 
     @Override

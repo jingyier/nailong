@@ -2,6 +2,7 @@ package cn.jingyier.nail.nailong.animation;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -31,12 +32,18 @@ public class AnimationPlayer {
      *  is gated by per-action {@link AnimationAction#getFrameIntervalMs()}. */
     private static final long TICK_MS = 50;
 
+    private final ApplicationEventPublisher eventPublisher;
+
     private final AtomicReference<AnimationAction> currentAction = new AtomicReference<>(AnimationAction.IDLE);
     private final AtomicInteger frameIndex = new AtomicInteger(0);
     private volatile int pingPongDirection = 1;
     private volatile long lastAdvanceMs = System.currentTimeMillis();
     private volatile Instant lastChatActivity = Instant.now();
     private volatile boolean finished = false;
+
+    public AnimationPlayer(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
 
     /** Timestamp until which state switching is locked (minimum one cycle). */
     private volatile long switchLockedUntilMs = 0;
@@ -114,6 +121,7 @@ public class AnimationPlayer {
         if (!action.equals(old)) {
             log.debug("Animation switch: {} → {}", old != null ? old.name() : "null", action.name());
         }
+        publishState();
     }
 
     @Scheduled(fixedDelay = 50)
@@ -150,6 +158,15 @@ public class AnimationPlayer {
         }
 
         processPendingSwitch(now);
+        publishState();
+    }
+
+    private void publishState() {
+        try {
+            eventPublisher.publishEvent(new AnimationStateChangedEvent(getState()));
+        } catch (Exception e) {
+            log.debug("Event publish skipped: {}", e.getMessage());
+        }
     }
 
     private void processPendingSwitch(long now) {
